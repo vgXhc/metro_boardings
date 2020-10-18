@@ -1,0 +1,105 @@
+---
+title: "Madison Metro Boardings"
+author: "Harald Kliems"
+date: "10/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data
+
+Madison Metro publishes boardings per stop on the City of Madison Open Data Portal. 
+
+```{r}
+library(tidyverse)
+library(sf)
+library(mapdeck)
+```
+
+```{r}
+boardings <- st_read("data/Metro_Transit_Ridership_by_Stop.shp")
+```
+```{r}
+boardings <- 
+  boardings %>% 
+  mutate(tooltip = paste0("Stop: ",
+                          StopDescri,
+                          "<br>",
+                          "Weekday boardings: ",
+                          Weekday))
+library(mapdeck)
+mapdeck(style = 'mapbox://styles/mapbox/light-v10', pitch = 45) %>% 
+  mapdeck::add_column(data = boardings, 
+                      elevation = "Weekday",
+                      radius = 10,
+                      fill_colour = "Weekday",
+                      legend = T,
+                      tooltip = "tooltip"
+                      )
+```
+
+# Add Metro routes
+
+```{r}
+library(tidytransit)
+gtfs <- read_gtfs("http://transitdata.cityofmadison.com/GTFS/mmt_gtfs.zip")
+```
+```{r}
+gtfs_sf <- gtfs_as_sf(gtfs)
+
+mapdeck(style = 'mapbox://styles/mapbox/light-v10', 
+        pitch = 45,
+        zoom = 10) %>% 
+  mapdeck::add_column(data = boardings, 
+                      elevation = "Weekday",
+                      radius = 15,
+                      fill_colour = "Weekday",
+                      legend = T,
+                      tooltip = "tooltip"
+                      ) %>% 
+  add_sf(gtfs_sf$shapes,
+         stroke_colour = "#ff6666")
+```
+
+
+# Add population density
+```{r}
+library(tidycensus)
+options(tigris_use_cache = TRUE)
+
+v18 <- load_variables(2018, "acs5", cache = TRUE)
+
+
+pop <- get_acs(geography = "block group",
+               survey = "acs5", 
+               variables = "B01003_001", 
+               state = 55, 
+               county = "Dane", 
+               geometry = T,
+               keep_geo_vars = T)
+
+pop <- pop %>% 
+  mutate(pop_density = estimate / ALAND)
+
+mapdeck(style = 'mapbox://styles/mapbox/light-v10', 
+        pitch = 45,
+        zoom = 10) %>% 
+  add_polygon(data = pop, 
+              fill_colour = "pop_density",
+              fill_opacity = 0.5,
+              legend = T) %>% 
+  mapdeck::add_column(data = boardings, 
+                      elevation = "Weekday",
+                      radius = 15,
+                      fill_colour = "Weekday",
+                      legend = T,
+                      tooltip = "tooltip"
+                      ) %>% 
+  add_sf(gtfs_sf$shapes,
+         stroke_colour = "#ff6666")
+  
+```
+

@@ -21,7 +21,7 @@ knitr::opts_chunk$set(list(echo = FALSE, message = FALSE, warning = FALSE, resul
 ```
 
 
-Madison Metro publishes data boardings per stop on the City of Madison Open Data Portal. The data is also made available on what colloquially is known as the "red dot map" -- which isn't the most appealing visualization format:
+Madison Metro [publishes data boardings per stop on the City of Madison Open Data Portal](https://cityofmadison.maps.arcgis.com/apps/webappviewer/index.html?id=61872bbc0107482a91115a3ce21fa1aa). The data is also made available on what colloquially is known as the "red dot map" -- which isn't the most appealing visualization format:
 
 ![The "red dot map." Screenshot from City of Madison Open Data Portal](data/screenshot_red_dot_map.png)
 
